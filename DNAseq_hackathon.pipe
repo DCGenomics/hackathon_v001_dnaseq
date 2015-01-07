@@ -1,0 +1,120 @@
+MUTECT_FILE='input.gtf'
+MUTECT_OUTPUT='b37_exon_positions.txt'
+SAMPLEFILE='/blast-c/sra_data/meningioma/cake_output/meningioma_sample_test.csv'
+OUT_DIR='/blast-c/sra_data/meningioma/cake_output/filter'
+CAKE_DIR='/opt/cake/Cake/trunk/scripts'
+SCRIPTS_DIR='/blast-c/scripts/simpsoncl/scripts'
+REFERENCE_DIR='/blast-c/scripts/simpsoncl/reference'
+ANNOVAR_FILE='variants.avi'
+ANNOVAR_INPUT='data'
+ANNOVAR_OUT='annotations.txt'
+VCF_1=''
+VCF_2=''
+ANNOVAR_DIR='/opt/annovar'
+run_mutect = {
+	exec "perl $SCRIPTS_DIR/gtf2pos.pl $MUTECT_FILE"
+}
+
+run_CAKE = {
+	exec "mkdir $OUT_DIR"
+	exec """
+		perl $SCRIPTS_DIR/run_somatic_pipeline.pl 
+		        -s $SAMPLEFILE 
+		        -species human 
+		        -callers varscan,bambino,somaticsniper,mutect
+		        -separator "," 
+		        -o $OUT_DIR 
+		        -mode FILTERING
+	"""
+}
+
+run_ANNOVAR = {
+	exec "perl $SCRIPTS_DIR/lines.pl $ANNOVAR_INPUT > $ANNOVAR_FILE"
+	exec "$ANNOVAR_DIR/annotate_variation.pl -out refseq_genes -build hg19 $ANNOVAR_FILE $ANNOVAR_DIR/humandb/"
+	exec "$ANNOVAR_DIR/annotate_variation.pl -out known_genes -build hg19 $ANNOVAR_FILE $ANNOVAR_DIR/humandb/ -dbtype knownGene"
+	exec "$ANNOVAR_DIR/annotate_variation.pl $ANNOVAR_FILE $ANNOVAR_DIR/humandb/ -filter -dbtype clinvar_20140929 -buildver hg19 -out clinvar"
+	exec "
+	exec "$ANNOVAR_DIR/annotate_variation.pl $ANNOVAR_FILE $ANNOVAR_DIR/humandb -filter -dbtype caddgt20 -buildver hg19 -out cadd
+	exec "$ANNOVAR_DIR/annotate_variation.pl -filter -build hg19 -out cosmic -dbtype cosmic64 $ANNOVAR_FILE $ANNOVAR_DIR/humandb
+	exec "R --vanilla < $SCRIPTS_DIR/annovar_concat.R --args $ANNOVAR_OUT
+}
+
+check_ACMG = {
+	exec "cat $ANNOVAR_OUT | awk '{print $1"\t"$2"\t"$3}' > intersect.bed"
+	exec "intersectBed -wa -a $REFERENCE_DIR/ACMG_gene_list.bed -b intersect.bed > $output.bed
+}
+
+vcf_venn = {
+	exec "DIR_1=`dirname $VCF_1`"
+	exec "FILE_1=`basename $VCF_1`"
+	exec 'PATH_1="`cd \"$DIR_1\" 2>/dev/null && pwd -P || echo \"$DIR_1\"`/$FILE_1"'
+
+	exec "DIR_2=`dirname $VCF_2`"
+	exec "FILE_2=`basename $VCF_2`"
+	exec 'PATH_2="`cd \"$DIR_2\" 2>/dev/null && pwd -P || echo \"$DIR_2\"`/$FILE_2"'
+
+	exec 'ID=`date +"%s"`'
+	exec 'WORKDIR=$PWD/Workdir_venn_${ID}'
+	exec 'mkdir $WORKDIR'
+	exec 'cd $WORKDIR'
+
+	exec 'echo ""'
+	exec 'echo "Sorting and compressing VCFs..."'
+
+	exec 'vcf-sort $PATH_1 | bgzip -c > ${VCF_1}.gz'
+	exec 'vcf-sort $PATH_2 | bgzip -c > ${VCF_2}.gz'
+
+	exec 'test_file ${VCF_1}.gz'
+	exec 'test_file ${VCF_2}.gz'
+
+	exec 'echo ""'
+	exec 'echo "Generating .tbi files..."'
+
+	exec 'tabix -p vcf ${VCF_1}.gz'
+	exec 'tabix -p vcf ${VCF_2}.gz'
+
+	exec 'test_file ${VCF_1}.gz.tbi'
+	exec 'test_file ${VCF_2}.gz.tbi'
+
+	exec 'echo ""'
+	exec 'echo "Taking intersection..."'
+
+	exec 'vcf-isec -p venn ${VCF_1}.gz ${VCF_2}.gz'
+
+	exec 'if [ -f venn_README ] ; then rm venn_README ; fi'
+
+	exec 'rm ${VCF_1}.gz'
+	exec 'rm ${VCF_2}.gz'
+
+	exec 'rm ${VCF_1}.gz.tbi'
+	exec 'rm ${VCF_2}.gz.tbi'
+	exec 'echo ""'
+	exec 'echo "Moving and renaming files in the Output directory..."'
+
+	exec 'mkdir $PWD/Output_vcf_venn_${ID}'
+
+	exec 'mv venn0.vcf.gz Output_vcf_venn_${ID}/unique_in_${1}_NOT_in_${2}.gz'
+	exec 'mv venn1.vcf.gz Output_vcf_venn_${ID}/unique_in_${2}_NOT_in_${1}.gz'
+	exec 'mv venn0_1.vcf.gz Output_vcf_venn_${ID}/shared_by_${1}_AND_${2}.gz'
+	exec 'echo ""'
+	exec 'echo "Moving the Output directory..."'
+	exec "mv Output_vcf_venn_${ID}/ .. || throw_error "Didn't move Output_vcf_venn_${ID}"
+	exec 'cd ..'
+	exec 'rm -r $WORKDIR'
+	
+	exec 'echo ""'
+	exec 'Moving the Output directory..."'
+  	exec 'mv Output_vcf_venn_${ID}/ .. || throw_error "Didn't move Output_vcf_venn_${ID}'
+
+	exec 'cd ..'
+	exec 'rm -r $WORKDIR'
+
+	exec 'echo ""'
+	exec 'echo "$0 finished."'
+
+}
+
+Bpipe.run {
+	run_mutect + run_CAKE + run_ANNOVAR + check_ACMG + vcf_venn
+}
+

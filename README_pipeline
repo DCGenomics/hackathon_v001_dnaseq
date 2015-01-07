@@ -1,0 +1,32 @@
+This pipeline uses bpipe to control the running of the various pieces of the pipeline. Bpipe handles errors and allows restarting of failed analyses.
+
+To use the pipeline, users must alter the DNAseq_hackathon.pipe file to reflect the following parameters:
+
+SCRIPTS_DIR should be pointed to the path of the Python and PERL scripts used in this pipeline and 
+REFERENCE_DIR should be pointed to the path of the reference files required by the tools in this pipeline.
+
+If you want to run MuTect:
+
+	Set MUTECT_FILE to the input GTF file
+	Set MUTECT_OUTPUT to the desired output file
+
+For running the CAKE pipeline:
+	
+	SAMPLEFILE is the input data in CSV format
+	OUT_DIR is the directory for writing the output
+	CAKE_DIR is the CAKE installation directory
+	
+
+For annotation with ANNOVAR:
+	
+	ANNOVAR_INPUT is an ANNOVAR formatted file to which line numbers must be appended
+	ANNOVAR_FILE is the ANNOVAR formatted file for annotation with line numbers for the final concatenation step
+	ANNOVAR_OUT is the final output file from ANNOVAR
+	ANNOVAR_DIR is the location of the ANNOVAR installation
+
+For the two VCF cross-comparison:
+	VCF_1 and VCF_2 are the two VCF files for comparison
+
+
+Users can decide which pieces of the pipeline to use  - modify the Bpipe.run at the end of the DNAseq_hackathon.pipe file. Each piece is executed sequentially in the order inputted.
+	
