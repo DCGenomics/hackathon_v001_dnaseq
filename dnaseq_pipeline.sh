@@ -143,7 +143,7 @@ rm -r java_temp/
 
 echo ""
 echo "Running cake variant calling..."
-../cake_calling.sh cake_sample.csv
+../scripts/cake/cake_calling.sh cake_sample.csv
 
 # Output goes to cake_sample.csv_dir.
 # Need to put the mutect output into that directory before filtering.
@@ -161,7 +161,7 @@ mkdir cake_mutect_merged
 
 echo ""
 echo "Running cake filter to integrate mutect..."
-../cake_filter.sh cake_sample.csv cake_mutect_merged/
+../scripts/cake/cake_filter.sh cake_sample.csv cake_mutect_merged/
 
 
 # (Any annovar analysis can go here)
@@ -182,7 +182,7 @@ echo "Running cake filter to integrate mutect..."
 # It's currently difficult to cleanly integrate into this script because the
 # number of VCFs to compare is unknown, but it can be called as:
 
-#vcf_venn.sh ${VCF_1} ${VCF_2}
+#../scripts/vcf_venn.sh ${VCF_1} ${VCF_2}
 
 
 # Create output directory
@@ -190,7 +190,7 @@ mkdir Output_dnaseq_${ID}
 
 mv mutect_text/ Output_dnaseq_${ID}/
 mv cake_mutect_merged/ Output_dnaseq_${ID}/
-#mv ACMG_hits.bed Output_dnaseq_${ID}/
+# mv ACMG_hits.bed Output_dnaseq_${ID}/
 
 
 # Move output directory out of the working directory
