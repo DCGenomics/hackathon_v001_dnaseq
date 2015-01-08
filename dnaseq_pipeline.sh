@@ -143,7 +143,7 @@ rm -r java_temp/
 
 echo ""
 echo "Running cake variant calling..."
-cake_calling.sh cake_sample.csv
+../cake_calling.sh cake_sample.csv
 
 # Output goes to cake_sample.csv_dir.
 # Need to put the mutect output into that directory before filtering.
@@ -161,7 +161,7 @@ mkdir cake_mutect_merged
 
 echo ""
 echo "Running cake filter to integrate mutect..."
-cake_filter.sh cake_sample.csv cake_mutect_merged/
+../cake_filter.sh cake_sample.csv cake_mutect_merged/
 
 
 # (Any annovar analysis can go here)
