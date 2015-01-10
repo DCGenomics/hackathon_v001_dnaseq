@@ -212,5 +212,5 @@ rm -r $WORKDIR
 
 echo ""
 echo ""
-echo "dnaseq_pipeline.sh finished!"
+echo "dnaseq_hackathon_pipeline.sh finished!"
 exit 0
