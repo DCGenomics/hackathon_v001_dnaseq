@@ -1,7 +1,7 @@
 dnaseq_hackathon_pipeline.sh
 ============================
 
-dnaseq_hackathon_pipeline.sh is designed to process human DNA-Seq data (such as exome sequencing). Specifically, it compares tumor vs. normal samples, outputs VCF files of variants unique to tumor samples. It is built around Cake (URL), and provides additional functionality and analysis by incorporating other bioinformatics tools into the pipeline. 
+dnaseq_hackathon_pipeline.sh is designed to process human DNA-Seq data (such as exome sequencing). Specifically, it compares tumor vs. normal samples, outputs VCF files of variants unique to tumor samples. It is built around Cake (somatic.sourceforge.net), and provides additional functionality and analysis by incorporating other bioinformatics tools into the pipeline. 
 
 This pipeline was written during the NCBI/ADDS NIH Hackathon, and should currently be considered a work in progress.
 
@@ -82,8 +82,8 @@ dnaseq_hackathon_pipeline.sh is licensed under CC0 1.0 Universal.
 Contact
 -------
 
-Matthew C. LaFave, Ph.D.
-Developmental Genomics Section, Translational and Functional Genomics Branch
+Matthew C. LaFave, Ph.D.,
+Developmental Genomics Section, Translational and Functional Genomics Branch,
 NHGRI, NIH
 
 Email: matthew.lafave [at sign] nih.gov
